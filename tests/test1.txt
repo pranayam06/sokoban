@@ -1,0 +1,18 @@
+let grid = [|
+  [| FLOOR;  WALL;  WALL;  WALL;  WALL;  WALL |];
+  [| FLOOR;  WALL; FLOOR; FLOOR; FLOOR; WALL |];
+  [| WALL;  WALL; WALL; FLOOR;  FLOOR; WALL |];
+  [| WALL;  FLOOR; FLOOR; FLOOR; WALL; WALL |];
+  [| WALL;  FLOOR; FLOOR; FLOOR; WALL; WALL |];
+  [| WALL;  FLOOR;  FLOOR;  FLOOR;  WALL;  FLOOR |];
+  [| WALL;  WALL;  WALL;  WALL;  WALL;  FLOOR |];
+|];;
+
+let start = {
+  grid   = grid;
+  player = { row = 5; col = 1 };
+  boxes  = PosSet.of_list [{ row = 4; col = 2 }; { row = 3; col = 2 }];
+  goals  = PosSet.of_list [{ row = 1; col = 2 }; { row = 1; col = 3 }];
+};;
+
+bfs start;;
