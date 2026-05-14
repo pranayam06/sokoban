@@ -78,8 +78,6 @@ in
           in
           loop
             (rest @ neighbors)
-            (StateSet.add state visited)
+            (List.fold_left (fun v (s, _) -> StateSet.add s v) visited neighbors)
     in
     loop [(start, [])] StateSet.empty
-
-
