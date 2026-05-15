@@ -99,3 +99,31 @@ in
             (List.fold_left (fun v (s, _) -> StateSet.add s v) visited neighbors)
     in
     loop [(start, [])] StateSet.empty
+
+
+
+    let bfs2 (start: state) : dir list option =
+      let q = Queue.create () in
+      Queue.push (start, []) q;
+      let visited = ref StateSet.empty in
+      let rec loop () =
+        if Queue.is_empty q then None
+        else
+          let (state, path) = Queue.pop q in
+          if (StateSet.mem state !visited) then loop ()
+          else if is_solved state then Some (List.rev path)
+          else begin
+            visited := StateSet.add state !visited;
+            List.iter (fun d ->
+              match move state d with
+              | (None, _) -> ()
+              | (Some next, Some box) -> 
+                if (not (is_deadlock next box)) || (is_solved next) then
+                  Queue.push (next, d :: path) q
+              | (Some next, None) ->
+                Queue.push (next, d :: path) q
+            ) [LEFT; RIGHT; UP; DOWN];
+            loop ()
+          end
+      in
+      loop ()
