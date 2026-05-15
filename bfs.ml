@@ -45,38 +45,43 @@ let idx_grid grid p = grid.(p.row).(p.col)
 let is_wall s p = idx_grid s.grid p = WALL 
 let is_box s p = PosSet.mem p s.boxes
 
-let move (s : state) (d : dir) : state option = 
+let move (s : state) (d : dir) : ((state option) * (pos option)) = 
   let dxy = delta(d) in
   let next = add_pos s.player dxy in
   let nextnext = add_pos next dxy in
   let is_box = (PosSet.mem next s.boxes) 
 in 
-  if is_wall s next then None 
+  if is_wall s next then (None, None)
   else let is_next_box = (PosSet.mem nextnext s.boxes) in 
-      if is_box && (is_wall s nextnext || is_next_box) then None
+      if is_box && (is_wall s nextnext || is_next_box) then (None, None)
   else if is_box then  
-    Some { s with player = next; boxes = s.boxes |> PosSet.remove next |> PosSet.add nextnext }
-  else Some {s with player = next}
+    (Some { s with player = next; boxes = s.boxes |> PosSet.remove next |> PosSet.add nextnext }, Some nextnext)
+  else (Some {s with player = next}, None) 
 
 
 
-  let is_blocked (s: state) (d: dir) = 
-    let next = add_pos s.player (delta d) in
-    is_wall s next || is_box s next
+  let is_blocked (s: state) (p : pos) (d: dir) = 
+    let next = add_pos p (delta d) in
+    is_wall s next
     
     
-  let is_deadlock (s : state) = 
-    let helper = is_blocked s
-  in 
-    (helper LEFT || helper RIGHT) && (helper UP || helper DOWN)
- 
+  let is_deadlock (s: state) (box: pos) =
+      if PosSet.mem box s.goals then false
+      else
+        let helper = is_blocked s box in
+        (helper LEFT || helper RIGHT) && (helper UP || helper DOWN)
 
+  
   let check_and_filter (visited) (state) (path) (d) =
     match move state d with
-    | None -> None
-    | Some next ->
-      if (StateSet.mem next visited || (is_deadlock next)) then None  
+    | None, _ -> None
+    | (Some next, Some box) ->
+      if (StateSet.mem next visited || (is_deadlock next box)) then None  
       else Some (next, d :: path) 
+    | (Some next, _) -> 
+      if StateSet.mem next visited then None  
+      else Some (next, d :: path) 
+      
 
   let bfs (start : state) : (dir list) option = 
     let rec loop q visited = 
